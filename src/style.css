@@ -1,0 +1,90 @@
+/* ========== 轻量版 CSS 初始化 ========== */
+/* 1. 重置盒模型：所有元素使用 border-box，避免宽高计算混乱 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 2. 重置 body 样式：消除默认边距，设置基础字体 */
+body {
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fff;
+  -webkit-font-smoothing: antialiased; /* 移动端字体抗锯齿 */
+}
+
+/* 3. 重置列表样式：消除默认列表标记 */
+ul,
+ol {
+  list-style: none;
+}
+
+/* 4. 重置链接样式：消除默认下划线，统一颜色 */
+a {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+a:hover {
+  text-decoration: underline; /* 保留 hover 下划线，提升可访问性 */
+}
+
+/* 5. 重置按钮/输入框：消除默认样式，统一外观 */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+button {
+  cursor: pointer;
+}
+
+/* 6. 重置图片/视频：响应式适配，消除默认间隙 */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block; /* 消除图片底部默认空白 */
+}
+
+/* 7. 重置表格：消除默认边框和间距 */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* 8. 重置标题：消除默认字体大小和边距，继承 body 字体 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* 9. 清除浮动（兼容旧场景） */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* 10. 禁用文本选中（按需使用） */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
