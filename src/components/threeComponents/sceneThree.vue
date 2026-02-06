@@ -162,7 +162,7 @@ onMounted(() => {
     resizeObserver()
     initAmbientLight()
     animate()
-    emits('ready', { scene: scene.value, camera: camera.value, renderer: renderer.value, controls: controls.value })
+    emits('ready', { scene: scene.value, camera: camera.value, renderer: renderer.value, controls: controls.value, addUpdate: addUpdateFunction, removeUpdate: removeUpdateFunction })
 
 
 })

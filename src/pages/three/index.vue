@@ -19,6 +19,7 @@ import LoadGltfVue from '../../components/threeComponents/loadGltf.vue';
 import { useThreeMousePick } from '../../hooks/threeHooks/mouseHooks';
 import { setModelScale } from '../../utils/therrUtils';
 import gsap from 'gsap'
+import { getBox3Info } from '../../utils/threeIndex';
 
 
 let threeObj = null
@@ -27,12 +28,17 @@ let officeBuild = null
 const unmountFnList = []
 
 
-const readyScene = ({ scene, camera, renderer, controls }) => {
-  threeObj = { scene, camera, renderer, controls }
+const readyScene = ({ scene, camera, renderer, controls, addUpdate }) => {
+  threeObj = { scene, camera, renderer, controls, addUpdate }
 }
 
 const loadGltf = (model) => {
   officeBuild = model
+  model.scene.traverse(item => {
+    if(item.isMesh) console.log(getBox3Info(item))
+  })
+  console.log('loadGltf', model)
+  // getBox3Info
   setModelScale(model.scene, 100)
 
   officeBuild.scene.children.forEach((child, index) => {
