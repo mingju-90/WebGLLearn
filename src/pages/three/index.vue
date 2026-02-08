@@ -17,7 +17,7 @@ import { onBeforeUnmount, onMounted } from 'vue';
 import sceneThree from '../../components/threeComponents/sceneThree.vue';
 import LoadGltfVue from '../../components/threeComponents/loadGltf.vue';
 import { useThreeMousePick } from '../../hooks/threeHooks/mouseHooks';
-import { setModelScale } from '../../utils/therrUtils';
+import { setModelScale } from '../../utils/threeUtils';
 import gsap from 'gsap'
 import { getBox3Info } from '../../utils/threeIndex';
 

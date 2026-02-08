@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js 雷达扫描（参考指定 Shader）</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #000; }
+        #container { width: 100vw; height: 100vh; }
+    </style>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="container"></div>
+
+    <script>
+        // ===================== 初始化 Three.js 核心对象 =====================
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+        camera.position.set(0, 0, 5);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        // ===================== Shader 代码（参考指定逻辑） =====================
+        const vertex = `
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+              gl_Position = projectionMatrix * viewMatrix * modelPosition;
+            }
+        `;
+
+        const frag = `
+            uniform float uTime;
+            varying vec2 vUv;
+
+            // 绘制圆环（参考原 drawCircle 函数，优化平滑度）
+            float drawCircle(vec2 vUv, float radius) {
+              float res = length(vUv);
+              float width = 0.005; // 圆环宽度
+              return smoothstep(radius - width, radius, res) - smoothstep(radius, radius + width, res);
+            }
+
+            // 绘制扫描扇形（参考原 drawSector 函数，优化渐变+循环）
+            float drawSector(vec2 vUv, float radius) {
+              float angle = uTime * 0.8; // 扫描速度（可调）
+              // 矩阵旋转 UV（核心：和原代码一致的旋转逻辑）
+              vec2 newvUv = mat2(cos(angle), sin(angle), -sin(angle), cos(angle)) * vUv;
+              
+              vec2 x = vec2(1.0, 0.0);
+              vec2 y = vec2(0.0, 1.0);
+              float res = dot(newvUv, y);
+              float angle2 = acos(dot(x, normalize(newvUv))); // 计算角度（0~π）
+           
+              
+              // 扇形范围判断：0~90度（1.5707弧度）、半径<0.45、y轴正方向
+              float inSector = 0.0;
+              if (angle2 > 0.0 && angle2 < 1.5707 && length(newvUv) < 0.45 && res > 0.0) {
+                // 扇形渐变（从中心到边缘变暗，优化原逻辑）
+                inSector = 1.0 - smoothstep(0.0, 1.5707, angle2);
+                // 径向渐变（距离越远越暗）
+                // inSector *= 1.0 - smoothstep(0.0, 0.45, length(newvUv));
+              }
+              return inSector;
+            }
+
+            void main() {
+              // UV 原点移到中心（和原代码一致）
+              vec2 newvUv = vUv;
+              newvUv -= vec2(0.5);
+              
+              vec3 color = vec3(0.0);
+              // 绘制三层圆环（参考原代码的 circle/circle2/circle3）
+              float circle1 = drawCircle(newvUv, 0.45); // 最外层
+              float circle2 = drawCircle(newvUv, 0.3);  // 中间层
+              float circle3 = drawCircle(newvUv, 0.1);  // 最内层
+              color += (circle1 + circle2 + circle3) * 0.5; // 圆环透明度
+              
+              // 绘制扫描扇形（参考原代码）
+              float sector = drawSector(newvUv, 0.45);
+              color += sector;
+              
+              // 最终颜色（绿色，和原代码一致）
+              gl_FragColor = vec4(color * vec3(0.0, 1.0, 0.0), 1.0);
+            }
+        `;
+
+        // ===================== 创建雷达平面 =====================
+        // 平面几何体（UV 范围 0~1，适配 shader 逻辑）
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0.0 }
+            },
+            vertexShader: vertex,
+            fragmentShader: frag,
+            transparent: true,
+            blending: THREE.AdditiveBlending
+        });
+
+        const plane = new THREE.Mesh(geometry, material);
+        scene.add(plane);
+
+        // ===================== 动画循环 =====================
+        const animate = () => {
+            requestAnimationFrame(animate);
+            // 更新时间（驱动扫描旋转）
+            material.uniforms.uTime.value += 0.01;
+            // 渲染场景
+            renderer.render(scene, camera);
+        };
+
+        // ===================== 窗口适配 =====================
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 启动动画
+        animate();
+    </script>
+</body>
+</html>

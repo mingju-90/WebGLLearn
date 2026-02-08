@@ -20,7 +20,7 @@ import { onMounted } from 'vue';
 import sceneThree from '../../components/threeComponents/sceneThree.vue';
 import LoadGltfVue from '../../components/threeComponents/loadGltf.vue';
 import grid from '../../components/threeComponents/grid.vue'
-import { setModelScale } from '../../utils/therrUtils';
+import { setModelScale } from '../../utils/threeUtils';
 import { PointerLockControls } from 'three/examples/jsm/Addons.js';
 
 
