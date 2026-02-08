@@ -2,9 +2,13 @@
   <div class="threeShader-container">
     <SceneThree @ready="readyScene">
       <grid />
-      <Pulse color="red" :ringCount="6" :radius="60"/>
-       <RadarScann color="red" :radius="60" :scanDuration="5"/>
+      <Pulse v-if="showShaderType === 'Pulse'" color="red" :ringCount="6" :radius="60" />
+      <RadarScann v-if="showShaderType === 'RadarScann'" color="green" :radius="60" :scanDuration="5" />
     </SceneThree>
+    <div class="tools">
+      <a-button @click="showType('Pulse')">辐射扩展效果</a-button>
+      <a-button @click="showType('RadarScann')">雷达扫描效果</a-button>
+    </div>
   </div>
 </template>
 
@@ -12,7 +16,7 @@
 import * as THREE from 'three';
 
 // 页面逻辑
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import SceneThree from '../../components/threeComponents/sceneThree.vue';
 import Grid from '../../components/threeComponents/grid.vue';
 import Pulse from '../../components/shader/pulse.vue';
@@ -26,6 +30,12 @@ const readyScene = ({ scene, camera, renderer, controls, addUpdate }) => {
 }
 
 
+const showShaderType = ref('')
+const showType = type => {
+  showShaderType.value = type
+}
+
+
 onMounted(() => {
   console.log('threeShader 页面加载完成');
 });
@@ -36,5 +46,12 @@ onMounted(() => {
   padding: var(--spacing-base);
   height: 100%;
   position: relative;
+}
+.tools {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 12px;
 }
 </style>

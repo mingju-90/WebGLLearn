@@ -4,7 +4,7 @@
 
 <script setup>
 import * as THREE from 'three';
-import { ref, reactive, computed, onMounted, shallowRef, inject } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, shallowRef, inject } from 'vue'
 import { colorStringToRgb } from '../../utils';
 
 // Props 定义（radius 明确为最大半径）
@@ -40,9 +40,11 @@ function mod(n, m) {
 // 注入 Three.js 场景实例
 const scene = inject('scene', null);
 const addUpdate = inject('addUpdate', () => { })
+const removeUpdate = inject('removeUpdate', () => { })
 
 const group = shallowRef(new THREE.Group())
 let scanTime = 0;
+let updateCallback = null; // 保存动画回调引用（用于销毁）
 
 // 动画速度计算（适配最大半径，保证时长一致）
 const getAnimationSpeed = () => {
@@ -52,7 +54,7 @@ const getAnimationSpeed = () => {
 };
 
 const init = () => {
-    if (!scene.value) {
+    if (!scene?.value) {
         console.error('未注入有效的Three.js Scene实例');
         return;
     }
@@ -111,7 +113,8 @@ const init = () => {
     group.value.position.y = 0.1;
     scene.value.add(group.value);
 
-    addUpdate(() => {
+    // 保存动画回调引用（关键：用于销毁时移除）
+    updateCallback = () => {
         const speed = getAnimationSpeed();
         scanTime += speed;
         
@@ -124,17 +127,70 @@ const init = () => {
             const currentScale = progress * props.radius;
             child.scale.setScalar(currentScale);
         });
-    });
+    };
+
+    // 注册动画回调
+    addUpdate(updateCallback);
+};
+
+// 资源清理核心函数（强制清理所有Three.js资源）
+const cleanUpAllResources = () => {
+    // 1. 移除动画回调（停止动画逻辑）
+    if (updateCallback) {
+        removeUpdate(updateCallback);
+        updateCallback = null;
+        scanTime = 0; // 重置动画时间
+    }
+
+    // 2. 从场景中移除Group并清理子对象
+    if (scene?.value && group.value) {
+        scene.value.remove(group.value);
+
+        // 3. 遍历清理所有圆环的几何体和材质
+        group.value.children.forEach((ringMesh) => {
+            // 释放几何体资源（GPU显存）
+            if (ringMesh.geometry) {
+                ringMesh.geometry.dispose();
+                ringMesh.geometry = null;
+            }
+
+            // 释放材质资源（GPU显存）
+            if (ringMesh.material) {
+                ringMesh.material.dispose();
+                // 清理材质uniforms中的可释放资源
+                Object.values(ringMesh.material.uniforms).forEach(uniform => {
+                    if (uniform.value && typeof uniform.value.dispose === 'function') {
+                        uniform.value.dispose();
+                    }
+                });
+                ringMesh.material = null;
+            }
+
+            // 移除网格引用
+            ringMesh = null;
+        });
+
+        // 清空Group的子对象
+        group.value.clear();
+        group.value = null;
+    }
+
+    console.log('环形扩散组件资源已全部强制清理');
 };
 
 onMounted(() => {
     console.log('组件挂载完成：', {
         color: colorStringToRgb(props.color),
-        maxRadius: props.radius, // 明确标注为最大半径
+        maxRadius: props.radius,
         ringCount: props.ringCount,
         duration: props.animationDuration
     });
     init();
+});
+
+// 组件卸载时执行强制清理
+onUnmounted(() => {
+    cleanUpAllResources();
 });
 </script>
 

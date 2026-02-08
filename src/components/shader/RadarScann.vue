@@ -4,7 +4,7 @@
 
 <script setup>
 import * as THREE from 'three';
-import { ref, reactive, computed, onMounted, inject } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, inject, shallowRef } from 'vue'
 import { colorStringToRgb } from '../../utils';
 
 // Props 定义
@@ -29,6 +29,13 @@ const props = defineProps({
 // 注入 Three.js 场景实例
 const scene = inject('scene', null);
 const addUpdate = inject('addUpdate', () => { })
+const removeUpdate = inject('removeUpdate', () => { })
+
+// 保存Three.js核心对象引用（用于销毁清理）
+const planeRef = shallowRef(null);       // 雷达平面网格
+const materialRef = shallowRef(null);   // 着色器材质
+const geometryRef = shallowRef(null);   // 平面几何体
+let updateCallback = null;              // 动画回调引用
 
 // 计算每秒旋转的弧度（一圈2π弧度 / 扫描秒数）
 const rotateRadianPerSecond = computed(() => {
@@ -38,7 +45,7 @@ const rotateRadianPerSecond = computed(() => {
 });
 
 const init = () => {
-    if (!scene) {
+    if (!scene?.value) {
         console.error('未注入有效的 Three.js Scene 实例');
         return;
     }
@@ -47,8 +54,10 @@ const init = () => {
     const customRgb = colorStringToRgb(props.color);
     const { radius } = props;
     
-    // 创建和半径匹配的平面
+    // 创建和半径匹配的平面（保存引用）
     const geometry = new THREE.PlaneGeometry(radius * 2, radius * 2);
+    geometryRef.value = geometry;
+
     const material = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0.0 },
@@ -110,28 +119,72 @@ const init = () => {
         `,
         transparent: true,
         blending: THREE.AdditiveBlending,
-    })
+    });
+    materialRef.value = material;
 
-    const plane = new THREE.Mesh(geometry, material)
-    // -Math.PI/2 是 90 度逆时针旋转，让平面从垂直变水平
+    const plane = new THREE.Mesh(geometry, material);
     plane.rotation.x = -Math.PI / 2;
-    // 可选：调整平面位置（确保在场景中心）
     plane.position.y = 0;
-    scene.value.add(plane)
+    scene.value.add(plane);
+    planeRef.value = plane;
 
-    // 注册动画更新函数
-    addUpdate(() => {
+    // 保存动画回调引用（用于销毁时移除）
+    updateCallback = () => {
         material.uniforms.uTime.value += 0.01;
-        // 如果scanDuration动态变化，实时更新旋转速度
         material.uniforms.uRotateRadianPerSecond.value = rotateRadianPerSecond.value;
-    })
-}
+    };
+    // 注册动画回调
+    addUpdate(updateCallback);
+};
 
-// 组件挂载后初始化（确保inject完成）
+// 资源清理核心函数
+const cleanUpResources = () => {
+    // 1. 移除动画更新回调（关键：停止动画逻辑）
+    if (updateCallback) {
+        removeUpdate(updateCallback);
+        updateCallback = null;
+    }
+
+    // 2. 从场景中移除雷达平面
+    if (scene?.value && planeRef.value) {
+        scene.value.remove(planeRef.value);
+        // 解除网格对几何体/材质的引用
+        planeRef.value.geometry = null;
+        planeRef.value.material = null;
+        planeRef.value = null;
+    }
+
+    // 3. 释放材质资源（GPU显存）
+    if (materialRef.value) {
+        materialRef.value.dispose();
+        // 清理uniforms中可能的可释放资源
+        Object.values(materialRef.value.uniforms).forEach(uniform => {
+            if (uniform.value && typeof uniform.value.dispose === 'function') {
+                uniform.value.dispose();
+            }
+        });
+        materialRef.value = null;
+    }
+
+    // 4. 释放几何体资源（GPU显存）
+    if (geometryRef.value) {
+        geometryRef.value.dispose();
+        geometryRef.value = null;
+    }
+
+    console.log('雷达组件资源已全部清理');
+};
+
+// 组件挂载后初始化
 onMounted(() => {
     console.log('组件挂载完成，扫描一圈耗时：', props.scanDuration, '秒');
     init();
-})
+});
+
+// 组件卸载时强制清理所有资源
+onUnmounted(() => {
+    cleanUpResources();
+});
 </script>
 
 <style scoped lang="scss">
