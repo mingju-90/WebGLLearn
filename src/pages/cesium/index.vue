@@ -21,7 +21,10 @@ import ViewerVue from '../../components/cesiumComponents/viewer.vue';
 import TiandituLayer from '../../components/cesiumComponents/tiandituLayer.vue';
 import PolylineEdgeMaterial from './directionTrackMaterial';
 import DashStrokeMaterial from '../../components/cesiumMaterial/DashStrokeMaterial';
+import FlowLineMateria from '../../components/cesiumMaterial/FlowLineMateria';
 const showMapType = ref('satellite')
+
+
 
 
 const addBlueLineWithShader = (viewer) => {
@@ -40,13 +43,14 @@ const addBlueLineWithShader = (viewer) => {
       width: 10,
       clampToGround: true, // 强制贴地
       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-      material: new DashStrokeMaterial({
-        bgColor: Cesium.Color.fromCssColorString('#0091FF')
+      material: new FlowLineMateria({
       }),
     }
   });
   // 定位到线段
   viewer.zoomTo(entity);
+
+
   return entity;
 }
 
@@ -56,6 +60,7 @@ const ready = (viewer) => {
 
 onMounted(() => {
   console.log('cesium 页面加载完成');
+
 });
 </script>
 
