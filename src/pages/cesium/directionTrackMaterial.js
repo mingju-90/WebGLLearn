@@ -1,6 +1,8 @@
 import * as Cesium from 'cesium';
 /** 代表 */
-const borderLineSource = `
+const borderLineSource = /* glsl */ `
+#pragma vscode_glsllint_stage : frag //pragma to set STAGE to 'frag'
+
 uniform vec4 edgeColor;   // 两侧边框色
 uniform float edgeRatio;  // 单侧边框占比（0~0.5）
 uniform float dashLength; // 预留参数（未使用，可删除）
