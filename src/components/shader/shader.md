@@ -33,3 +33,12 @@ new THREE.ShaderMaterial({
 
 - gl_FragColor
     - 片元着色器的核心输出, 定义像素最终颜色
+
+
+## GLSL 核心函数整理
+### 基础数学函数
+| 函数名 | 语法 | 核心作用 | 经典场景 |
+|- | - | - | - |
+| abs | float abs(float x)<br> vec2/3/4 abs(vec x) | 获取绝对值 | 距离计算, 负数转正数 |
+| sign | float sign(float x) <br> vec2/3/4 sign(vec x) | 返回富豪: x > 0 => 1, x < 0 => -1, x = 0 => 0 | 方向判断, 正负区分 |
+| floor | float floor(float x) <br> vec2/3/4 floor(vec x) | 向下取整 | 网格/棋盘格, 整数化坐标 |

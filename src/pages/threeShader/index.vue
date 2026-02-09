@@ -2,6 +2,7 @@
   <div class="threeShader-container">
     <SceneThree @ready="readyScene">
       <grid />
+      <TrajectoryLine />
       <Pulse v-if="showShaderType === 'Pulse'" color="red" :ringCount="6" :radius="60" />
       <RadarScann v-if="showShaderType === 'RadarScann'" color="green" :radius="60" :scanDuration="5" />
     </SceneThree>
@@ -21,6 +22,8 @@ import SceneThree from '../../components/threeComponents/sceneThree.vue';
 import Grid from '../../components/threeComponents/grid.vue';
 import Pulse from '../../components/shader/pulse.vue';
 import RadarScann from '../../components/shader/RadarScann.vue';
+import TrajectoryLine from '../../components/shader/trajectoryLine.vue';
+
 
 
 let threeObj = null

@@ -51,6 +51,7 @@ onMounted(() => {
 .${pageName}-container {
   padding: var(--spacing-base);
   height: 100%;
+  position: relative;
 }
 </style>
 `.trim();
