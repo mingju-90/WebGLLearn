@@ -20,10 +20,11 @@ import { onMounted, ref } from 'vue';
 import ViewerVue from '../../components/cesiumComponents/viewer.vue';
 import TiandituLayer from '../../components/cesiumComponents/tiandituLayer.vue';
 import PolylineEdgeMaterial from './directionTrackMaterial';
-import DashStrokeMaterial from '../../components/cesiumMaterial/DashStrokeMaterial';
+import FlowingTexturePolylineMaterial from '../../components/cesiumMaterial/FlowingTexturePolylineMaterial';
 import FlowLineMateria from '../../components/cesiumMaterial/FlowLineMateria';
+import RadarSweepMaterial from '../../components/cesiumMaterial/RadarSweepMaterial';
+import DashStrokeMaterial from '../../components/cesiumMaterial/DashStrokeMaterial';
 const showMapType = ref('satellite')
-
 
 
 
@@ -43,9 +44,18 @@ const addBlueLineWithShader = (viewer) => {
       width: 10,
       clampToGround: true, // 强制贴地
       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-      material: new FlowLineMateria({
+      material: new DashStrokeMaterial({
+        speed: 1,
       }),
-    }
+    },
+    // position: Cesium.Cartesian3.fromDegrees(116.4074, 39.9042, 0),
+    // ellipse: {
+    //   semiMajorAxis: 100, // 长半轴（米）→ 圆形半径
+    //   semiMinorAxis: 100, // 短半轴（米）→ 与长半轴相等
+    //   height: 0, // 圆形离地面的高度（米），0=贴地
+    //   extrudedHeight: 0, // 拉伸高度（米），0=2D圆形，>0=3D圆柱
+    //   material: new DashStrokeMaterial()
+    // }
   });
   // 定位到线段
   viewer.zoomTo(entity);

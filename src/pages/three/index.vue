@@ -1,7 +1,7 @@
 <template>
   <div class="three-container">
     <sceneThree @ready="readyScene">
-      <LoadGltfVue value="/glb/officeBuild.glb" @loaded="loadGltf" />
+      <LoadPCD value="/pcd_blade3.pcd" @loaded="loadGltf" />
     </sceneThree>
     <div class="tools">
       <a-button @click="expandOfficeBuildingFloors(true)">展开</a-button>
@@ -20,6 +20,8 @@ import { useThreeMousePick } from '../../hooks/threeHooks/mouseHooks';
 import { setModelScale } from '../../utils/threeUtils';
 import gsap from 'gsap'
 import { getBox3Info } from '../../utils/threeIndex';
+import LoadPCD from '../../components/threeComponents/loadPCD.vue';
+
 
 
 let threeObj = null
@@ -33,6 +35,7 @@ const readyScene = ({ scene, camera, renderer, controls, addUpdate }) => {
 }
 
 const loadGltf = (model) => {
+  return
   officeBuild = model
   model.scene.traverse(item => {
     if(item.isMesh) console.log(getBox3Info(item))
