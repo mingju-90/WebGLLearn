@@ -142,9 +142,16 @@ GLSL 材质渐变函数参考表
 | 函数名 | 参数 | 返回值 | 用途 |
 |--------|------|--------|------|
 | czm_getDefaultMaterial() | materialInput | czm_material | 获取默认材质 |
-| dot() | vec2, vec2 | float | 计算向量点积 |
+| dot() | vec2, vec2 | float | 计算向量点积, 判断两个向量的朝向相似度, 一致为1, 相反为0 |
 | clamp() | float, float, float | float | 限制值范围 |
 | mix() | vec3, vec3, float | vec3 | 线性插值 |
+| min() | float, float | float | 获取较小值 |
+| floot() | vec2/float | vec2/float | 向下取整 |
+| mod() | float, float | float | 模运算(求余数, 相对于js的 %) |
+| setp() | float, float | float | 第二个参数和第一个判断, 小于返回 0.0, 否则返回 1.0 |
+| smoothstep() | float, float, float | float | 平滑阶跃, 第一个参数是下限, 第二个是上限, 第三个是判断的值, 如果小于下限返回 0, 大于上限2返回 1, 在中间, 返回 (x - 下限) / (上限 - 下限) |
+| fract() | vec2/float | vec2/float | 返回小数部分 |
+
 变量类型
 | 变量名 | 类型 | 作用域 | 用途 |
 |--------|------|--------|------|

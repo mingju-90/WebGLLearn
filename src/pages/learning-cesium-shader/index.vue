@@ -21,7 +21,7 @@
           </a-menu>
         </template>
       </a-dropdown>
-      <a-card v-if="materialFormList.length" title="修改渐变背景材质" style="width: 300px; margin-top: 20px;">
+      <a-card v-if="materialFormList.length" title="修改材质" style="width: 300px; margin-top: 20px;">
         <div class="form-list">
           <div v-for="item of materialFormList" class="form-item">
             <div class="label">{{ item.label }}</div>
@@ -43,6 +43,8 @@ import { computed, onMounted, ref, shallowRef } from 'vue';
 import ViewerVue from '../../components/cesiumComponents/viewer.vue';
 import TiandituLayer from '../../components/cesiumComponents/tiandituLayer.vue';
 import SolidGradientMaterial from '../../components/cesiumMaterial/SolidGradientMaterial';
+import GridMaterial from '../../components/cesiumMaterial/GridMaterial';
+
 
 const showShaderType = ref('选择展示材质')
 
@@ -50,7 +52,7 @@ const menuList = [
   {
     title: '基础入门级', key: '基础入门级', children: [
       { title: '纯色渐变背景（矩形 / 球体）', key: 'SolidGradientMaterial', remark: '在 Cesium 矩形实体上实现「从红到蓝的线性渐变」，渐变方向可通过参数控制（水平 / 垂直 / 对角线）；' },
-      { title: '网格纹理（贴地 / 悬浮）', key: '' },
+      { title: '网格纹理（贴地 / 悬浮）', key: 'GridMaterial' },
       { title: ' 呼吸灯效果（点 / 圆形）', key: '' },
     ]
   }
@@ -68,7 +70,8 @@ const changeShowShader = value => {
   showShaderType.value = value.title
   console.log('changeShowShader', value)
   const map = {
-    SolidGradientMaterial: showSolidGradientMaterial
+    SolidGradientMaterial: showSolidGradientMaterial,
+    GridMaterial: showGridMaterial,
   }
 
   if (map[value.key]) map[value.key]()
@@ -108,6 +111,36 @@ const showSolidGradientMaterial = () => {
         Cesium.Math.toRadians(40)
       ),
       material: new SolidGradientMaterial(materialOption.value),
+      outline: true,
+      outlineColor: Cesium.Color.WHITE,
+      outlineWidth: 2,
+      height: 0
+    }
+  });
+  // 定位到矩形
+  viewer.value.zoomTo(entity.value);
+}
+const showGridMaterial = () => {
+  removeEntity()
+  materialFormList.value = [
+    {label: '网格数', prop: 'gridCount', change: () => entity.value.rectangle.material.setGridCount(Number(materialOption.value.gridCount))},
+    {label: '奇数颜色', prop: 'oddColor', change: () => entity.value.rectangle.material.setOddColor(materialOption.value.oddColor)},
+    {label: '偶数颜色', prop: 'evenColor', change: () => entity.value.rectangle.material.setEvenColor(materialOption.value.evenColor)},
+  ]
+  materialOption.value = {
+    gridCount: 10,
+    oddColor: 'red',
+    evenColor: 'blue'
+  }
+  entity.value = viewer.value.entities.add({
+    rectangle: {
+      coordinates: new Cesium.Rectangle(
+        Cesium.Math.toRadians(116.3),
+        Cesium.Math.toRadians(39.8),
+        Cesium.Math.toRadians(116.5),
+        Cesium.Math.toRadians(40)
+      ),
+      material: new GridMaterial(materialOption.value),
       outline: true,
       outlineColor: Cesium.Color.WHITE,
       outlineWidth: 2,
