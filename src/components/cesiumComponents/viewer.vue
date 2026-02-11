@@ -24,14 +24,15 @@ const getDefaultViewerOptions = () => {
   const baseOptions = {
     // 禁用默认的 Bing 地图底图（避免密钥问题）
     imageryProvider: false,
+    geocoder: false,
     // 隐藏自带的控件
-    homeButton: props.showDefaultToolbar, // 是否显示主页按钮
-    sceneModePicker: props.showDefaultToolbar, // 是否显示场景模式切换（2D/3D）
+    homeButton: false, // 是否显示主页按钮
+    sceneModePicker: false, // 是否显示场景模式切换（2D/3D）
     baseLayerPicker: false, // 隐藏底图选择器
     navigationHelpButton: false, // 隐藏导航帮助按钮
     animation: false, // 隐藏动画控件
     timeline: false, // 隐藏时间轴
-    fullscreenButton: props.showDefaultToolbar, // 是否显示全屏按钮
+    fullscreenButton: false, // 是否显示全屏按钮
     vrButton: false, // 隐藏 VR 按钮
     // 性能优化
     requestRenderMode: false, // 按需渲染（提升性能）
