@@ -37,6 +37,7 @@ const getDefaultViewerOptions = () => {
     // 性能优化
     requestRenderMode: false, // 按需渲染（提升性能）
     maximumRenderTimeChange: Infinity,
+    
     // 地形配置（默认加载 Cesium 全球地形）
     // terrainProvider: Cesium.createWorldTerrain({
     //   requestWaterMask: false, // 显示水面效果
