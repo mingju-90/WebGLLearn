@@ -2,8 +2,8 @@
   <div class="learning-cesium-shader-container">
     <ViewerVue @ready="ready">
       <template v-slot="{ viewer }">
-        <TiandituLayer :viewer="viewer" />
-        <TiandituLayer :viewer="viewer" type="annotation" />
+        <TiandituLayer :viewer="viewer" type="img"/>
+        <TiandituLayer :viewer="viewer" type="cia" />
       </template>
     </ViewerVue>
     <div class="tools">
@@ -45,6 +45,7 @@ import TiandituLayer from '../../components/cesiumComponents/tiandituLayer.vue';
 import SolidGradientMaterial from '../../components/cesiumMaterial/SolidGradientMaterial';
 import GridMaterial from '../../components/cesiumMaterial/GridMaterial';
 import BreathingLightMaterial from '../../components/cesiumMaterial/BreathingLightMaterial';
+import FlowLineMaterial from '../../components/cesiumMaterial/FlowLineMaterial';
 
 
 const showShaderType = ref('选择展示材质')
@@ -54,7 +55,8 @@ const menuList = [
     title: '基础入门级', key: '基础入门级', children: [
       { title: '纯色渐变背景（矩形 / 球体）', key: 'SolidGradientMaterial', remark: '在 Cesium 矩形实体上实现「从红到蓝的线性渐变」，渐变方向可通过参数控制（水平 / 垂直 / 对角线）；' },
       { title: '网格纹理（贴地 / 悬浮）', key: 'GridMaterial' },
-      { title: ' 呼吸灯效果（点 / 圆形）', key: 'BreathingLightMaterial' },
+      { title: '呼吸灯效果（点 / 圆形）', key: 'BreathingLightMaterial' },
+      { title: '流动线段', key: 'FlowLineMaterial' },
     ]
   }
 ]
@@ -62,6 +64,7 @@ const menuList = [
 const viewer = shallowRef()
 const ready = (_viewer) => {
   viewer.value = _viewer
+  changeShowShader(menuList[0].children[3])
 }
 
 
@@ -77,6 +80,7 @@ const changeShowShader = value => {
     SolidGradientMaterial: showSolidGradientMaterial,
     GridMaterial: showGridMaterial,
     BreathingLightMaterial: showBreathingLightMaterial,
+    FlowLineMaterial: showFlowLineMaterial,
   }
 
   if (map[value.key]) map[value.key]()
@@ -176,6 +180,24 @@ const showBreathingLightMaterial = () => {
   });
   console.log('dfad')
   // 定位到矩形
+  viewer.value.zoomTo(entity.value);
+}
+
+const showFlowLineMaterial = () => {
+  removeEntity()
+  entity.value = viewer.value.entities.add({
+    polyline: {
+      positions: Cesium.Cartesian3.fromDegreesArray([116.3, 39.8, 116.5, 40]),
+      width: 5,
+      material: new FlowLineMaterial({
+        color: 'red',
+        speed: 1,
+        percent: 0.1,
+      }),
+      clampToGround: true
+    }
+  });
+  // 定位到线段
   viewer.value.zoomTo(entity.value);
 }
 
