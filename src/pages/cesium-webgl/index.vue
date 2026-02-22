@@ -4,6 +4,7 @@
       <template v-slot="{ viewer }">
         <TiandituLayer :viewer="viewer" type="img" />
         <TiandituLayer :viewer="viewer" type="cia" />
+        <PolygonPrimitive :viewer="viewer" />
       </template>
     </ViewerVue>
   </div>
@@ -15,13 +16,16 @@ import * as Cesium from 'cesium';
 import { onMounted, shallowRef } from 'vue';
 import ViewerVue from '../../components/cesiumComponents/viewer.vue';
 
+
 import TiandituLayer from '../../components/cesiumComponents/tiandituLayer.vue';
+import PolygonPrimitive from './PolygonPrimitive.vue';
 // import aaaimg from '../../assets/cesium/aaa.png'
 
 const viewer = shallowRef(null)
 
 
 const ready = (_viewer) => {
+  return
   viewer.value = _viewer
   for(let i = 0; i < 100; i++) {
     addBox2([116, 39.05 + i * 0.005]) // 生成经纬度坐标，验证位置正确
@@ -67,7 +71,7 @@ const addBox2 = ([lng, lat]) => {
   console.time('generateGridRectangles')
   // 注意：10000个阵列=100万矩形，建议先测试10个阵列验证效果
   // const {positions, indices, st} = generateGridRectangles(10000) // 先测10个阵列，再改回10000
-  const arr = generateRectangleCoordinates(100, [lng, lat]) // 生成经纬度坐标，验证位置正确
+  const arr = generateRectangleCoordinates(1, [lng, lat]) // 生成经纬度坐标，验证位置正确
   console.log('生成的经纬度坐标示例：', arr[0]); // 打印第一个矩形的4个角点坐标
   const {positions, indices, st, center} = convertRectanglesToRenderData(arr) // 转换为渲染数据，验证格式正确
   console.log('生成的顶点数据示例：', center); // 打印前4个顶点坐标（每个顶点3个值）
@@ -75,11 +79,7 @@ const addBox2 = ([lng, lat]) => {
   // return
   console.timeEnd('generateGridRectangles')
 
-  // 1. 定义顶点格式：包含POSITION（位置）+ ST（纹理坐标，用于计算边框）
-  const vertexFormat = new Cesium.VertexFormat({
-    position: true,
-    st: true // 必须启用ST，用于着色器计算边框
-  });
+
 
   // 2. 构建几何（新增ST纹理坐标属性，用于边框计算）
   const geometry = new Cesium.Geometry({
@@ -98,9 +98,8 @@ const addBox2 = ([lng, lat]) => {
     indices,
     primitiveType: Cesium.PrimitiveType.TRIANGLES,
     boundingSphere: Cesium.BoundingSphere.fromVertices(positions),
-    _workerName: 'createTaskProcessorWorker',
-    vertexFormat: vertexFormat // 匹配包含ST的顶点格式
   });
+  console.log('创建的 Geometry:', geometry);
 
   // 3. 构建几何实例（移除color属性，改用材质统一控制颜色）
   const geometryInstance = new Cesium.GeometryInstance({
@@ -114,30 +113,11 @@ const addBox2 = ([lng, lat]) => {
   const borderMaterial = new Cesium.Material({
     fabric: {
       // 材质参数（可按需调整）
+      type: 'Image',
       uniforms: {
-        uImg: '/123.png',
+        image: '/123.png',
       }, 
-      // 自定义着色器：通过ST坐标判断是否为边框区域
-      source: `
-        uniform sampler2D uImg;
-        czm_material czm_getMaterial(czm_materialInput materialInput) {
-          czm_material material = czm_getDefaultMaterial(materialInput);
-          
-          // 获取纹理坐标（ST）：每个矩形的ST范围是0~1
-          vec2 st = materialInput.st;
-        
-
-          vec4 patternColor = texture(uImg, st);
-          material.emission = czm_gammaCorrect(patternColor).rgb;
-          material.alpha = patternColor.a;
-
-          // material.emission = vec3(0.2, 0.6, 0.9) * material.alpha; // 浅蓝色填充
-          // material.alpha = 0.8; // 固定透明度
-
-
-          return material;
-        }
-      `
+     
     },
   });
 
@@ -148,7 +128,6 @@ const addBox2 = ([lng, lat]) => {
       material: borderMaterial,
       flat: true, // 关闭光照，保留纯色效果
       translucent: false,
-      vertexFormat: vertexFormat, // 匹配包含ST的顶点格式
       closed: false // 非闭合几何体，减少计算
     }),
     asynchronous: false, // 海量数据建议先关闭异步
