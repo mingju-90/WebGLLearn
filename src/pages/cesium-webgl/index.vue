@@ -3,7 +3,8 @@
     <ViewerVue @ready="ready">
       <template v-slot="{ viewer }">
         <TiandituLayer :viewer="viewer" type="img" />
-        <TiandituLayer :viewer="viewer" type="cia" />
+        <!-- <TiandituLayer :viewer="viewer" type="cia" /> -->
+        <ArcTerrain :viewer="viewer" />
         <PolygonPrimitive :viewer="viewer" />
       </template>
     </ViewerVue>
@@ -19,6 +20,7 @@ import ViewerVue from '../../components/cesiumComponents/viewer.vue';
 
 import TiandituLayer from '../../components/cesiumComponents/tiandituLayer.vue';
 import PolygonPrimitive from './PolygonPrimitive.vue';
+import ArcTerrain from '../../components/cesiumComponents/ArcTerrain.vue';
 // import aaaimg from '../../assets/cesium/aaa.png'
 
 const viewer = shallowRef(null)

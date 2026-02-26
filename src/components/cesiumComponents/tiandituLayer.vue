@@ -45,7 +45,8 @@ const tdtLayers = {
         layer: "tdtImgLayer",
         style: "default",
         format: "image/jpeg",
-        tileMatrixSetID: "GoogleMapsCompatible"
+        tileMatrixSetID: "GoogleMapsCompatible",
+        maximumLevel: 18
     },
     // 影像注记
     cia: {
@@ -81,7 +82,8 @@ const loadLayer = (type) => {
         // 天地图的子域名，用于负载均衡
         subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
         // 解决跨域问题（如果需要）
-        credit: new Cesium.Credit("天地图")
+        credit: new Cesium.Credit("天地图"),
+        maximumLevel: layerConfig.maximumLevel || 18 // 设置默认最大层级为18，影像底图可以设置更高的层级
     });
 
     // 将图层添加到viewer
