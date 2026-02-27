@@ -1,15 +1,20 @@
 <template>
-    <div class="container" ref="containerRef">
-        <slot v-if="isReady" :viewer="viewer"/>
-    </div>
+  <div class="container" ref="containerRef">
+    <slot v-if="isReady" :viewer="viewer" />
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, shallowRef, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, shallowRef, onUnmounted, watchEffect } from 'vue'
 import * as Cesium from 'cesium';
 
 // Props 定义
-const props = defineProps({})
+const props = defineProps({
+  depthTestAgainstTerrain: {
+    type: Boolean,
+    default: true,
+  },
+})
 
 const containerRef = ref()
 
@@ -25,6 +30,8 @@ const getDefaultViewerOptions = () => {
     // 禁用默认的 Bing 地图底图（避免密钥问题）
     imageryProvider: false,
     geocoder: false,
+    infoBox: false,
+    selectionIndicator: false,
     // 隐藏自带的控件
     homeButton: false, // 是否显示主页按钮
     sceneModePicker: false, // 是否显示场景模式切换（2D/3D）
@@ -37,12 +44,7 @@ const getDefaultViewerOptions = () => {
     // 性能优化
     requestRenderMode: false, // 按需渲染（提升性能）
     maximumRenderTimeChange: Infinity,
-    
-    // 地形配置（默认加载 Cesium 全球地形）
-    // terrainProvider: Cesium.createWorldTerrain({
-    //   requestWaterMask: false, // 显示水面效果
-    //   requestVertexNormals: false // 提升地形光照效果
-    // })
+
   }
 
   // 合并默认配置和用户传入的配置（用户配置优先级更高）
@@ -50,10 +52,11 @@ const getDefaultViewerOptions = () => {
 }
 
 const initCesium = () => {
-    Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxYjQ0NWI2Yi0zOTFiLTRkYzAtODFlNS1iNTQ2NzAwNTI5N2QiLCJpZCI6MTgyMTk3LCJpYXQiOjE3MDE1OTQ3OTJ9.pTuIpfzcMZB-z301bqrHrLPk8PXiVFPfptLFa5E1bFM"
-    viewer.value = new Cesium.Viewer(containerRef.value, getDefaultViewerOptions());
-    isReady.value = true
-    emits('ready', viewer.value)
+  Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxYjQ0NWI2Yi0zOTFiLTRkYzAtODFlNS1iNTQ2NzAwNTI5N2QiLCJpZCI6MTgyMTk3LCJpYXQiOjE3MDE1OTQ3OTJ9.pTuIpfzcMZB-z301bqrHrLPk8PXiVFPfptLFa5E1bFM"
+  viewer.value = new Cesium.Viewer(containerRef.value, getDefaultViewerOptions());
+  isReady.value = true
+  viewer.value.scene.globe.depthTestAgainstTerrain = props.depthTestAgainstTerrain
+  emits('ready', viewer.value)
 }
 
 const destroyCesium = () => {
@@ -69,8 +72,14 @@ const destroyCesium = () => {
 
 // 生命周期
 onMounted(() => {
-    console.log('组件挂载完成')
-    initCesium()
+  console.log('组件挂载完成')
+  initCesium()
+
+})
+watchEffect(() => {
+  if (viewer.value) {
+    viewer.value.scene.globe.depthTestAgainstTerrain = props.depthTestAgainstTerrain
+  }
 })
 onUnmounted(() => {
   destroyCesium()
@@ -79,8 +88,8 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .container {
-    // 样式
-    height: 100%;
-    position: relative;
+  // 样式
+  height: 100%;
+  position: relative;
 }
 </style>
